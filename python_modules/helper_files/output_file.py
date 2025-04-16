@@ -8,7 +8,7 @@ class CustomJSONEncoder(json.JSONEncoder):
         return super().default(obj)
 
 # Function to output the results of a code generation process to a file
-def output_results(args, results):
+def output_results(output_path: str, results):
     """ Output the results of a code generation process to a file """
-    with open(f"{args.absolute_output_directory}/results.txt", "w", encoding="utf-8") as f:
+    with open(f"{output_path}/results.txt", "w", encoding="utf-8") as f:
         f.write(json.dumps(results, indent=4, cls=CustomJSONEncoder))

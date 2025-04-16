@@ -1,23 +1,25 @@
 """ This module is used to check a C file in a given directory"""
-from Verify_files.compile_file import compile_c
-from Verify_files.verify_file import verify_file
+from python_modules.Verify_files.compile_file import compile_c
+from python_modules.Verify_files.verify_file import verify_file
 
-def check_file(absolute_path_to_c_file, args):
-    """Check a C file in a given directory"""
-
-    if args.debug:
-        print("Specification and generated file exists, starting to compile...")
-
+def check_file(absolute_path_to_c_file, temp_folder):
+    """Check a C file in a given directory
+    
+    Args:
+        absolute_path_to_c_file: The absolute path to the C file
+        temp_folder: The temporary folder to store the compiled file
+    Returns:
+        result: True if the file is compiled, False otherwise
+        output: The output of the compilation
+        verified_goals: The number of verified goals
+        verification_time_taken: The time taken to verify the file
+    """
     # Compile the file
-    result, output = compile_c(args, absolute_path_to_c_file, args.temp_folder)
+    result, output = compile_c(absolute_path_to_c_file, temp_folder)
 
     # If the compilation failed, return False and the output
     if result is False:
-        if args.debug:
-            print(f"Compilation failed, Error:\n {output}")
         return False, output, None, 0
-    elif args.debug:
-        print("File compiled successfully")
 
     # Verify the file and return it
-    return verify_file(args)
+    return verify_file(absolute_path_to_c_file, temp_folder)

@@ -7,6 +7,12 @@ A fork of VeCoGen that generates formal ACSL specifications from C code.
 
 ## Running the tool manually
 
+## Create a python virtual environment
+
+python -m venv .venv
+. .venv/bin/activate
+pip install -r requirements.txt
+
 ### Prerequisites
 
 - Python 3.6 or higher
