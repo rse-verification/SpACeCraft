@@ -1,4 +1,4 @@
-A fork of VeCoGen that generates formal ACSL specifications from C code.
+A fork of VeCoGen that generates formal ACSL specifications from C code
 
 ## INPUT
 
