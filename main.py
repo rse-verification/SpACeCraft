@@ -23,7 +23,7 @@ def generate_specification_folder(directory: str, output_path: str, model_name: 
         print(f"Starting to generate code for file {c_file}....")
 
         # Set the output path
-        output_file = f"{output_path}/{model_name}_{c_file.replace('.c', '')}"
+        output_file = f"output_{model_name}_{c_file}.c"
 
         # Create an output directory for all the files if it does not exist yet
         if not os.path.exists(output_path):
@@ -34,7 +34,7 @@ def generate_specification_folder(directory: str, output_path: str, model_name: 
 
         # Print the current generated file
         print("\n \n" + "-" * 100 + "\n \n")
-        print(f"Generated specification for file {c_file}. \n\n")
+        print(f"Generated code for file {c_file}. \n\n")
 
 def parse_arguments():
     """Parse the arguments given to the tool"""

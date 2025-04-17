@@ -20,8 +20,10 @@ def verify_file(absolute_c_path, solver):
     # Start the timer
     start_time = time.time()
 
+    print(absolute_c_path)
+
     # Create the prompt that is used for frama c
-    prompt = f"frama-c  -wp '{absolute_c_path}'  -wp-prover {solver} -wp-steps 1000000000 -wp-timeout 20 -wp-rte -wp-smoke-tests -wp-status"
+    prompt = f"frama-c  -wp '{absolute_c_path}'  -wp-prover {solver} -wp-steps 1000000000 -wp-timeout 20 -wp-rte '-wp-smoke-tests -wp-status"
 
     # Call a subroutine to use Frama-C to verify the C file
     result = subprocess.Popen(prompt, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
@@ -44,7 +46,11 @@ def verify_file(absolute_c_path, solver):
     stdout, stderr = result.communicate()
     stdout_str = stdout.decode("utf-8")
     stderr_str = stderr.decode("utf-8")
-    print(stdout_str, stderr_str)
+    print("-" * 50)
+    print(stdout_str)
+    print("\n\n")
+    print(stderr_str)
+    print("-" * 50)
 
     # Get the error cause and the strategy to solve the error
     verified, error_cause, verified_goals_amount = get_error_cause_and_strategy(stdout_str, absolute_c_path)

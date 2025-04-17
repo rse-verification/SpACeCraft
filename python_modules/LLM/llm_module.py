@@ -36,9 +36,22 @@ def initialize_llms() -> Dict[str, object]:
 
     return models
 
+def parse_markdown_backticks(str, gemini_output = False) -> str:
+    if "```" not in str:
+        return str.strip()
+    
+    # Remove opening backticks and language identifier
+    str = str.split("```", 1)[-1].split("\n", 1)[-1]
+
+    # Remove closing backticks
+    str = str.rsplit("```", 1)[0]
+    # Remove any leading or trailing whitespace
+    return str.strip()
+
 def prompt(model: llm.Model, prompt: str):
     res = model.prompt(prompt, stream=False)
     return res
+
 
 def prompt_with_temp(model: llm.Model, prompt: str, temperature: float = 0.7):
     """
@@ -111,7 +124,7 @@ def format_prompt(template_type: str, C_code_input: str, previous_attempt: str =
     if not selected_template:
         raise ValueError("Invalid template type specified.")    
     
-    return selected_template.replace(f"{{{{{'C_CODE'}}}}}", C_code_input).replace(f"{{{{{'PREVIOUS_ATTEMPT'}}}}}", previous_attempt)
+    return selected_template.replace(f"{{{{{"C_CODE"}}}}}", C_code_input).replace(f"{{{{{"PREVIOUS_ATTEMPT"}}}}}", previous_attempt)
 
 def ensure_supported_llms(llms: List[str]) -> None:
     """
