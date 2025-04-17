@@ -23,7 +23,7 @@ def generate_specification_folder(directory: str, output_path: str, model_name: 
         print(f"Starting to generate code for file {c_file}....")
 
         # Set the output path
-        output_file = f"output_{model_name}_{c_file}.c"
+        output_file = f"{output_path}/{model_name}_{c_file.replace('.c', '.txt')}"
 
         # Create an output directory for all the files if it does not exist yet
         if not os.path.exists(output_path):
@@ -34,7 +34,7 @@ def generate_specification_folder(directory: str, output_path: str, model_name: 
 
         # Print the current generated file
         print("\n \n" + "-" * 100 + "\n \n")
-        print(f"Generated code for file {c_file}. \n\n")
+        print(f"Generated Specification for file {c_file}. \n\n")
 
 def parse_arguments():
     """Parse the arguments given to the tool"""
@@ -42,14 +42,14 @@ def parse_arguments():
     parser = argparse.ArgumentParser()
 
     # Arguments related to I/O
-    parser.add_argument("-d", "--directory", help="The directory to use for verification of the files.", type=str)
+    parser.add_argument("-d", "--directory", help="The directory to use for verification of the files.", type=str, default=os.path.join(os.getcwd(), "input"))
     parser.add_argument('-o', '--output_path', help="The output path to use for the code \
                         generation", type=str, default=os.path.join(os.getcwd(), "output"))
     parser.add_argument("-tmp", "--temp_folder", help="The folder where temporary files are stored", default= os.path.join(os.getcwd(), "..", "tmp"), type=str)    # Arguments for Debugging
 
     # Tool arguments
     parser.add_argument("-iter", "--iterations", help="The number of iterations to use for \
-                        the code generation", type=int, default=5)
+                        the code generation", type=int, default=3)
     parser.add_argument('-temp', '--temperature', help="The temperature to use for the code \
                         generation", type=float, default=1)
     parser.add_argument('-model', '--model_name', help="The model name to use for the \
