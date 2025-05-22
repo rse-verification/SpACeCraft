@@ -20,10 +20,8 @@ def verify_file(absolute_c_path, solver):
     # Start the timer
     start_time = time.time()
 
-    print(absolute_c_path)
-
     # Create the prompt that is used for frama c
-    prompt = f"frama-c  -wp '{absolute_c_path}'  -wp-prover {solver} -wp-steps 1000000000 -wp-timeout 20 -wp-rte '-wp-smoke-tests -wp-status"
+    prompt = f"frama-c  -wp '{absolute_c_path}'  -wp-prover {solver} -wp-steps 1000000000 -wp-timeout 20 -wp-rte -wp-smoke-tests -wp-status"
 
     # Call a subroutine to use Frama-C to verify the C file
     result = subprocess.Popen(prompt, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
@@ -32,7 +30,7 @@ def verify_file(absolute_c_path, solver):
     try:
         result.wait(600)
     except subprocess.TimeoutExpired:
-        print("Timeout expired. Killing the process.")
+        print("    Timeout expired. Killing the process.")
         result.kill()
         return False, "Timeout", "0 / 0", 600
 
@@ -43,14 +41,8 @@ def verify_file(absolute_c_path, solver):
     elapsed_time = end_time - start_time
 
     # Capture the command prompt output
-    stdout, stderr = result.communicate()
+    stdout, _ = result.communicate()
     stdout_str = stdout.decode("utf-8")
-    stderr_str = stderr.decode("utf-8")
-    print("-" * 50)
-    print(stdout_str)
-    print("\n\n")
-    print(stderr_str)
-    print("-" * 50)
 
     # Get the error cause and the strategy to solve the error
     verified, error_cause, verified_goals_amount = get_error_cause_and_strategy(stdout_str, absolute_c_path)
@@ -156,7 +148,7 @@ def initialize_solvers() -> List[str]:
         
         return parse_solvers_from_file(solvers_path)
     except (subprocess.CalledProcessError, FileNotFoundError) as e:
-        print(f"Error executing Why3 command: {e}")
+        print(f"    Error executing Why3 command: {e}")
         return []
 
 
@@ -181,9 +173,9 @@ def parse_solvers_from_file(file_path: str) -> List[str]:
                 if match:
                     solver_names.append(match.group(1))
     except FileNotFoundError:
-        print(f"Error: Solvers configuration file not found at {file_path}.")
+        print(f"    Error: Solvers configuration file not found at {file_path}.")
     except Exception as e:
-        print(f"Error reading solvers file: {e}")
+        print(f"    Error reading solvers file: {e}")
     
     return solver_names
 

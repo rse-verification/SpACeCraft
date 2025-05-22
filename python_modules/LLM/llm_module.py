@@ -3,7 +3,7 @@ import os
 from typing import Dict, List
 from python_modules.helper_files.filesystem_io import read_file
 
-SUPPORTED_LLMs = ["o1", "o3-mini", "gpt-4o-latest", "gpt-4o-mini"]
+SUPPORTED_LLMs = ["o1", "o3-mini", "gpt-4o-latest", "gpt-4o-mini", "o4-mini"]
 
 def load_prompt_templates() -> Dict[str, str]:
     """
@@ -25,33 +25,21 @@ def initialize_llms() -> Dict[str, object]:
         Dict[str, object]: A dictionary containing initialized LLM models.
     """
     llm_o3_mini, llm_o1 = build_o1_series()
-    llm_gpt_4o_latest, llm_gpt_4o_mini = build_openai_latest_and_fastest()
+    llm_gpt_4o_latest, llm_gpt_4o_mini, llm_gpt_o4_mini = build_openai_latest_and_fastest()
     
     models = {
         "o1": llm_o1,
         "o3-mini": llm_o3_mini,
         "gpt-4o-latest": llm_gpt_4o_latest,
         "gpt-4o-mini": llm_gpt_4o_mini,
+        "o4-mini-high": llm_gpt_o4_mini,
     }
 
     return models
 
-def parse_markdown_backticks(str, gemini_output = False) -> str:
-    if "```" not in str:
-        return str.strip()
-    
-    # Remove opening backticks and language identifier
-    str = str.split("```", 1)[-1].split("\n", 1)[-1]
-
-    # Remove closing backticks
-    str = str.rsplit("```", 1)[0]
-    # Remove any leading or trailing whitespace
-    return str.strip()
-
 def prompt(model: llm.Model, prompt: str):
     res = model.prompt(prompt, stream=False)
     return res
-
 
 def prompt_with_temp(model: llm.Model, prompt: str, temperature: float = 0.7):
     """
@@ -98,7 +86,10 @@ def build_openai_latest_and_fastest():
     gpt_4o_mini_model: llm.Model = llm.get_model("gpt-4o-mini")
     gpt_4o_mini_model.key = OPENAI_API_KEY
 
-    return gpt_4o_latest, gpt_4o_mini_model
+    gpt_o4_mini_model: llm.Model = llm.get_model("o4-mini")
+    gpt_o4_mini_model.key = OPENAI_API_KEY
+
+    return gpt_4o_latest, gpt_4o_mini_model, gpt_o4_mini_model
 
 
 def build_o1_series():
@@ -123,8 +114,8 @@ def format_prompt(template_type: str, C_code_input: str, previous_attempt: str =
     selected_template = templates.get(template_type)
     if not selected_template:
         raise ValueError("Invalid template type specified.")    
-    
-    return selected_template.replace(f"{{{{{"C_CODE"}}}}}", C_code_input).replace(f"{{{{{"PREVIOUS_ATTEMPT"}}}}}", previous_attempt)
+
+    return selected_template.replace(f"{{{{{'C_CODE'}}}}}", C_code_input).replace(f"{{{{{'FEEDBACK'}}}}}", previous_attempt)
 
 def ensure_supported_llms(llms: List[str]) -> None:
     """

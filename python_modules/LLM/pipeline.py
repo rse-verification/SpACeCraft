@@ -10,6 +10,7 @@ import os
 # Initialize the LLMs and solvers
 llm_models = initialize_llms()
 solvers = initialize_solvers()
+normalized_solvers = ",".join(s.lower() for s in solvers)
 
 def generate_specification_process(c_code: str, output_path: str, model_name: str, iterations: int, temperature: float, initial_examples_generated: int, temp_folder: str):
     """Function to iteratively generate specification and check it
@@ -29,77 +30,47 @@ def generate_specification_process(c_code: str, output_path: str, model_name: st
     specification_generation_process = SpecificationGenerationProcess(iterations)
 
     # Perform the initial specification generation step
-    absolute_c_path = os.path.abspath(c_code)
-    initial_specification_generation_information = initial_specification_generation_step(c_code, initial_examples_generated, model_name, temperature, absolute_c_path, temp_folder)
+    initial_specification_generation_information = initial_specification_generation_step(c_code, initial_examples_generated, model_name, temperature, temp_folder, output_path)
 
     # Add the initial specification generation information to the specification generation process
     specification_generation_process.add_initial_specification_generation_information(initial_specification_generation_information)
 
     verified = initial_specification_generation_information.is_verified
 
-    # Print information about the initial specification generation
-    print(f"After the initial specification generation step:\n Verified: {verified}, proved goals: {initial_specification_generation_information.best_attempt_metric_percentage}")
+    # Create an index for the specification improvement iterations
+    i = 0
+    last_iteration = initial_specification_generation_information
+    # Do the specification improvement steps until the specification is verified or the maximum iterations are reached
+    while (i < iterations and not verified):
+        print("    " + "-" * 50)
+        print(f"    specification improvement iteration {i + 1} of {iterations}.")
+        print("    " + "-" * 50)
 
-    # # Create an index for the specification improvement iterations
-    # i = 0
-    # last_iteration = initial_specification_generation_information
+         # Take the best attempt from the initial generation attempts
+        code = last_iteration.best_attempt_specification
+        output = last_iteration.best_attempt_feedback
 
-    # # Do the specification improvement steps until the specification is verified or the maximum iterations are reached
-    # while (i < iterations and not verified):
-    #     print("-" * 100)
-    #     print(f"specification improvement iteration {i + 1} of {iterations}.")
-    #     print("-" * 100)
+        # Perform the specification improvement step
+        specification_improvement_information = specification_improvement_step(i, code, output, initial_examples_generated, model_name, temperature, temp_folder, output_path)
+        
+        # Add the specification improvement information to the specification generation process
+        specification_generation_process.add_specification_improvement_information(specification_improvement_information)
 
-    #      # Take the best attempt from the initial generation attempts
-    #     code = last_iteration.best_attempt_specification
-    #     output = last_iteration.best_attempt_feedback
+        # Stop if the specification is verified
+        verified = specification_improvement_information.is_verified
 
-    #     # Perform the specification improvement step
-    #     specification_improvement_information = specification_improvement_step(args, i + 1, code, output)
-
-    #     # Add the specification improvement information to the specification generation process
-    #     specification_generation_process.add_specification_improvement_information(specification_improvement_information)
-
-    #     # Stop if the specification is verified
-    #     verified = specification_improvement_information.is_verified
-
-    #     # Update the last iteration and the counter
-    #     last_iteration = specification_improvement_information
-    #     i += 1
+        # Update the last iteration and the counter
+        last_iteration = specification_improvement_information
+        i += 1
+    print(last_iteration.best_attempt_specification)
 
     # Print the results
-    print(f"Total completions used: {specification_generation_process.total_completions_used} total time taken: {specification_generation_process.total_time_taken_verification}.")
-    print(f"Has the specification been successfully verified: {verified}")
+    print(f"    Total completions used: {specification_generation_process.total_completions_used} total time taken: {specification_generation_process.total_time_taken_verification}.")
+    print(f"    Has the specification been successfully verified: {verified}")
 
     # save the results to a file
     output_results(output_path, specification_generation_process.to_dict())
     return specification_generation_process
-
-# Function that verifies and tests the specification that has been generated
-def verify_attempt(args, response_gpt, i):
-    """ 
-    Function to verify the specification that has been generated
-    Args:
-        args: The arguments given to the program
-        response_gpt: The response from the GPT model
-        i: The iteration number
-    Returns:
-        verified: Boolean that indicates if the specification is verified
-        output: The output of the verification process
-        verified_goals: The proportion of goals that have been verified
-        verification_time_taken: The time taken to verify the specification
-    """
-
-    # Verify the specification and code
-    verified, output, verified_goals, verification_time_taken = check_file(args.absolute_c_path, args)
-
-    # If the compilation failed, then return the information
-    if not verified and verified_goals is None:
-        return verified, output, "0 / 0", verification_time_taken
-
-    print(f"Verified goals: {verified_goals}. Used {verification_time_taken} seconds to verify.")
-
-    return verified, output, verified_goals, verification_time_taken
 
 # Function for initial specification generation
 def initial_specification_generation_step(c_code: str, initial_examples_generated: int, model_name: str, temperature: float, temp_folder: str, output_path: str):
@@ -122,27 +93,22 @@ def initial_specification_generation_step(c_code: str, initial_examples_generate
 
     # For each initial attempt, get the response, tokens used, and model used
     for llm_response_index in range(initial_examples_generated):
-        print("-" * 50)
-        print(f"Initial specification generation, specification completion {llm_response_index + 1} of {initial_examples_generated}.")
-        print("-" * 50)
+        print("    " + ("-" * 50))
+        print(f"    Initial specification generation, specification completion {llm_response_index + 1} of {initial_examples_generated}.")
+        print("    " + ("-" * 50))
 
         # Read the c code
         with open(c_code, "r", encoding="utf-8") as f:
-            c_code = f.read()
+            c_code_content = f.read()
 
         # Get the output path
-        filled_prompt = format_prompt("initial_prompt", c_code)
+        filled_prompt = format_prompt("initial_prompt", c_code_content)
 
         # generate the initial attempts by making prompts of at most x each
         llm_response = prompt_with_temp(llm_models[model_name], filled_prompt, temperature=temperature)
 
-        # Save the response to a file
-        absolute_c_path = os.path.abspath(output_path) + f"/initial_response_{llm_response_index}.txt"
-        with open(absolute_c_path, "w", encoding="utf-8") as f:
-            f.write(llm_response.text())
-
         # Process the generated specification and get information about the completion
-        completion_information = process_specification_and_get_completion_information(llm_response, 0, filled_prompt, temperature, absolute_c_path, temp_folder, initial_attempt = True)
+        completion_information = process_specification_and_get_completion_information(llm_response, 0, filled_prompt, temperature, temp_folder, output_path, initial_attempt = True)
 
         # Add the completion to the iteration information
         iteration_info.add_completion(completion_information)
@@ -154,82 +120,95 @@ def initial_specification_generation_step(c_code: str, initial_examples_generate
     return iteration_info
 
 # Function that performs one iteration of specification improvement
-def specification_improvement_step(specification_improvement_iteration, code, output, initial_examples_generated, model_name, temperature):
-    """Function to do one iteration of specification improvement based on an existing file and and the verification error
-    Args:
-        specification_improvement_iteration: The iteration number
-        code: The code to use for the specification improvement
-        output: The output of the verification process
-        initial_examples_generated: The number of initial examples to generate
-        model_name: The name of the model to use
-        temperature: The temperature to use for the specification improvement
-    Returns:
-        iteration_info: The information about the specification improvement iteration
+def specification_improvement_step(
+    iteration_number: int,
+    code: str,
+    feedback: str,
+    num_attempts: int,
+    model_name: str,
+    temperature: float,
+    temp_folder: str,
+    output_path: str,
+) -> IterationInformation:
     """
+    Perform one iteration of specification improvement based on an existing spec and
+    its verification feedback.
+    Args:
+        iteration_number: which improvement iteration this is (1-based)
+        code: the previous best specification (C code)
+        feedback: the verification error/output for that code
+        num_attempts: how many alternative repairs to try
+        model_name: which LLM model to use
+        temperature: sampling temperature
+        temp_folder: where to compile/verify temporary files
+        output_path: where to write the repaired .c files
+    Returns:
+        iteration_info: an IterationInformation containing all attempts
+    """
+    iteration_info = IterationInformation(iteration_number, num_attempts)
 
-    # Create an iteration object that contains information about the specification improvement iteration
-    iteration_info = IterationInformation(specification_improvement_iteration, initial_examples_generated, model_name)
+    # Build the repair prompt once
+    filled_prompt = format_prompt("repair_prompt", code, feedback)
 
-    # Get the output path
-    filled_prompt = format_prompt("repair_prompt", code, output)
-
-    # generate the initial attempts by making prompts of at most x each
-    llm_response = llm_models[model_name].prompt_with_temp(filled_prompt, stream=False, temperature=temperature)
-
-    output_llm_json = llm_response.json()
-    if isinstance(output_llm_json, dict):
-        responses_llm = [llm_response]
-        models_used = output_llm_json.get("model", "unknown")
-        tokens_used = output_llm_json.get("usage", {}).get("total_tokens", 0)
-    elif isinstance(output_llm_json, list):
-        if len(output_llm_json) > 0:
-            usage = output_llm_json.get("usage", {})
-            tokens_used = usage.get("total_tokens", 0)
-
-    # For each response, check the specification. Stop if the specification is verified
-    # use enumerate
-    for llm_response_index, response_llm in enumerate(responses_llm):
+    for attempt_idx in range(num_attempts):
         print("-" * 50)
-        print(f"specification Improvement Iteration {specification_improvement_iteration}, specification completion {llm_response_index + 1} of {len(responses_llm)}.")
+        print(f"    Improvement Iteration {iteration_number}, attempt {attempt_idx + 1} of {num_attempts}")
         print("-" * 50)
 
-        # Get the generated specification and tokens used
-        response = response_llm.message.content
+        # Ask the LLM for a repair
+        llm_response = prompt_with_temp(
+            llm_models[model_name],
+            filled_prompt,
+            temperature=temperature
+        )
 
-        # Process the generated specification and get information about the completion
-        completion_information = process_specification_and_get_completion_information(args, response, specification_improvement_iteration, prompt, tokens_used[llm_response_index], models_used[llm_response_index])
+        # Process and verify this candidate
+        completion_info = process_specification_and_get_completion_information(
+            response_gpt=llm_response,
+            i=iteration_number,
+            prompt=filled_prompt,
+            temperature=temperature,
+            temp_folder=temp_folder,
+            output_path=output_path,
+            initial_attempt=False
+        )
 
-        # Add the completion to the iteration information
-        iteration_info.add_completion(completion_information)
+        iteration_info.add_completion(completion_info)
 
-        # If the specification is verified, then stop
-        if completion_information.is_verified:
+        # Stop early if it verifies
+        if completion_info.is_verified:
             break
 
     return iteration_info
 
 # Function that processes the specification, and gets iteration information, and verifies the goals
-def process_specification_and_get_completion_information(response_gpt, i, prompt, temperature, absolute_c_path: str, temp_folder: str, initial_attempt = False):
+def process_specification_and_get_completion_information(response_gpt, i, prompt, temperature, temp_folder: str, output_path: str, initial_attempt = False):
     """Function to process the generated specification and get iteration information
     Args:
         response_gpt: The response from the GPT model
         i: The iteration number
         prompt: The prompt that has been used
         temperature: The temperature used
-        absolute_c_path: The absolute path to the C file
         temp_folder: The temporary folder to store the compiled file
         initial_attempt: Boolean that indicates if this is the initial attempt
+        output_path: The output path of the file
     Returns:
         completion_information: The information about the completion
     """
 
     # Process the generated specification
-    code = response_gpt
-
-    # Extract the code from the response
+    # Extract the code from the response,
     code = parse_llm_output(response_gpt)
+    print(code)
+    # Save the response to a file
+    absolute_c_path = os.path.abspath(output_path) + f"/initial_response_{i}.c"
 
-    verified, verification_output, verified_goals, verification_time_taken = check_file(absolute_c_path, temp_folder)
+    # Create the output directory if it does not exist
+    os.makedirs(output_path, exist_ok=True)
+    with open(absolute_c_path, "w", encoding="utf-8") as f:
+        f.write(code)
+
+    verified, verification_output, verified_goals, verification_time_taken = check_file(absolute_c_path, temp_folder, normalized_solvers)
                                                                        
      # Add extra information about the generation attempt
     if initial_attempt:
@@ -240,32 +219,32 @@ def process_specification_and_get_completion_information(response_gpt, i, prompt
         information = "The specificationhas been improved"
 
     # Create an object that will contain information about the completion
-    completion_information = CompletionInformation(i, prompt, response_gpt,  verified, verified_goals, temperature ,information, code, verification_output, verification_time_taken)
+    completion_information = CompletionInformation(i, prompt, code,  verified, verified_goals, temperature ,information, code, verification_output, verification_time_taken)
 
     return completion_information
 
+
 def parse_llm_output(output_llm):
     """
-    Parses the output of the LLM and returns the code and specification generated by the LLM
-    This is done by looking at the <code> and </code> tags in the output
+    Parses the output of the LLM and returns the code and specification generated by the LLM.
+    This is done by looking at the <code> and </code> tags or ```c and ``` tags in the output.
+    The language identifier is matched case-insensitively.
     """
+    text = output_llm.text()
+    # Case-insensitive check for <code> tags
+    if "<code>" in text.lower() and "</code>" in text.lower():
+        start_index = text.lower().find("<code>") + len("<code>")
+        end_index = text.lower().find("</code>")
+        code_block = text[start_index:end_index].strip()
+        return code_block
 
-    # See if the code has the <code> and </code> tags or the ```c and ``` tags
-    if "<code>" in output_llm.text() and "</code>" in output_llm.text():
-        # Find the start and end of the code block
-        start_index = output_llm.text().find("<code>")
-        end_index = output_llm.text().find("</code>")
-        
-        # Extract the code block
-        code_block = output_llm.text()[start_index:end_index+7]
-        return code_block
-    elif "```c" in output_llm.text() and "```" in output_llm.text():
-        # Find the start and end of the code block
-        start_index = output_llm.text().find("```c")
-        end_index = output_llm.text().find("```")
-        
-        # Extract the code block
-        code_block = output_llm.text()[start_index:end_index+3]
-        return code_block
-    else:
-        return output_llm.text()
+    # Case-insensitive check for ```c blocks
+    lowered_text = text.lower()
+    if "```c" in lowered_text:
+        start_index = lowered_text.find("```c") + len("```c")
+        end_index = lowered_text.find("```", start_index)
+        if end_index != -1:
+            code_block = text[start_index:end_index].strip()
+            return code_block
+
+    return text
