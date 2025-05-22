@@ -1,9 +1,10 @@
+#include <limits.h>
+
 /*@
-    // Ensures the result is the sum of two integers a and b.
-    // Both a and b are within the range of int to avoid overflow.
-    requires 0 <= a + b <= 214748364 ;
-    ensures  \result == a + b;
-    assigns  \nothing;
+    // Prevent signed integer overflow: the sum fits in the C int range
+    requires a <= INT_MAX - b && a >= INT_MIN - b;
+    assigns \nothing;
+    ensures \result == a + b;
 */
 int add(int a, int b)
 {

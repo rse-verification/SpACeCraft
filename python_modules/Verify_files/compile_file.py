@@ -5,8 +5,7 @@ def compile_c(source_path, build_dir):
     base = os.path.splitext(os.path.basename(source_path))[0]
     out = os.path.join(build_dir, base)
 
-    # If you want an executable, omit "-c"; if you just want to compile to .o, keep it.
-    cmd = ["gcc", source_path, "-o", out]  # no "-c"
+    cmd = ["gcc", source_path, "-o", out, "-c"]
     proc = subprocess.run(cmd, capture_output=True, text=True)
 
     # Optionally remove the file if you only care about success, not the artifact:
@@ -14,4 +13,6 @@ def compile_c(source_path, build_dir):
         os.remove(out)
 
     success = (proc.returncode == 0)
+
+    print(success, proc.stdout + proc.stderr)
     return success, proc.stdout + proc.stderr

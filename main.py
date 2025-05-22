@@ -34,7 +34,7 @@ def generate_specification_folder(directory: str, output_path: str, model_name: 
 
         # Print the current generated file
         print("\n \n" + "-" * 100 + "\n \n")
-        print(f"Generated specification for file {c_file}. \n\n")
+        print(f"Generated Specification for file {c_file}. \n\n")
 
 def parse_arguments():
     """Parse the arguments given to the tool"""
@@ -49,12 +49,12 @@ def parse_arguments():
 
     # Tool arguments
     parser.add_argument("-iter", "--iterations", help="The number of iterations to use for \
-                        the code generation", type=int, default=3)
+                        the code generation", type=int, default=1)
     parser.add_argument('-temp', '--temperature', help="The temperature to use for the code \
                         generation", type=float, default=1)
     parser.add_argument('-model', '--model_name', help="The model name to use for the \
-                        code generation", type=str, default="o4-mini-high")
-    parser.add_argument("-ieg", "--initial_examples_generated", help="The amount of initial examples that are generated for each problem", default=1, type=int)
+                        code generation", type=str, default="o4-mini")
+    parser.add_argument("-ieg", "--initial_examples_generated", help="The amount of initial examples that are generated for each problem", default=3, type=int)
 
     # Parse arguments
     return parser.parse_args()

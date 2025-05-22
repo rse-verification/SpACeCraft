@@ -29,6 +29,9 @@ def generate_specification_process(c_code: str, output_path: str, model_name: st
     # Create a specification generation process object
     specification_generation_process = SpecificationGenerationProcess(iterations)
 
+
+    print("-" * 50)
+    print(f"Initial specification generation.")
     # Perform the initial specification generation step
     initial_specification_generation_information = initial_specification_generation_step(c_code, initial_examples_generated, model_name, temperature, temp_folder, output_path)
 
@@ -62,7 +65,6 @@ def generate_specification_process(c_code: str, output_path: str, model_name: st
         # Update the last iteration and the counter
         last_iteration = specification_improvement_information
         i += 1
-    print(last_iteration.best_attempt_specification)
 
     # Print the results
     print(f"    Total completions used: {specification_generation_process.total_completions_used} total time taken: {specification_generation_process.total_time_taken_verification}.")
@@ -152,7 +154,7 @@ def specification_improvement_step(
 
     for attempt_idx in range(num_attempts):
         print("-" * 50)
-        print(f"    Improvement Iteration {iteration_number}, attempt {attempt_idx + 1} of {num_attempts}")
+        print(f"    Improvement Iteration {iteration_number + 1}, attempt {attempt_idx + 1} of {num_attempts}")
         print("-" * 50)
 
         # Ask the LLM for a repair
@@ -190,6 +192,7 @@ def process_specification_and_get_completion_information(response_gpt, i, prompt
         prompt: The prompt that has been used
         temperature: The temperature used
         temp_folder: The temporary folder to store the compiled file
+        output_path: The path to the output file
         initial_attempt: Boolean that indicates if this is the initial attempt
         output_path: The output path of the file
     Returns:
@@ -199,7 +202,7 @@ def process_specification_and_get_completion_information(response_gpt, i, prompt
     # Process the generated specification
     # Extract the code from the response,
     code = parse_llm_output(response_gpt)
-    print(code)
+
     # Save the response to a file
     absolute_c_path = os.path.abspath(output_path) + f"/initial_response_{i}.c"
 

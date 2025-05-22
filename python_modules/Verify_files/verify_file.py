@@ -47,6 +47,8 @@ def verify_file(absolute_c_path, solver):
     # Get the error cause and the strategy to solve the error
     verified, error_cause, verified_goals_amount = get_error_cause_and_strategy(stdout_str, absolute_c_path)
 
+    print(verified, stdout)
+
     return verified, error_cause, verified_goals_amount, elapsed_time
 
 causes = ["Timeout", "Syntax Error", "Fatal Error", "Valid"]

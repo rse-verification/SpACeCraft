@@ -60,5 +60,3 @@ int sum_upto(int n)
     return s;
 }
 ``` 
-
-One hint: for addition make sure that a + b are smaller than the value of max int, max int cannot be used directly

@@ -32,7 +32,7 @@ def initialize_llms() -> Dict[str, object]:
         "o3-mini": llm_o3_mini,
         "gpt-4o-latest": llm_gpt_4o_latest,
         "gpt-4o-mini": llm_gpt_4o_mini,
-        "o4-mini-high": llm_gpt_o4_mini,
+        "o4-mini": llm_gpt_o4_mini,
     }
 
     return models
