@@ -14,5 +14,4 @@ def compile_c(source_path, build_dir):
 
     success = (proc.returncode == 0)
 
-    print(success, proc.stdout + proc.stderr)
     return success, proc.stdout + proc.stderr

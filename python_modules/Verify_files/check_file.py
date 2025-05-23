@@ -21,6 +21,7 @@ def check_file(absolute_path_to_c_file, temp_folder, solvers):
     # If the compilation failed, return False and the output
     if result is False:
         return False, output, None, 0
-
     # Verify the file and return it
-    return verify_file(absolute_path_to_c_file, solvers)
+    verified, error_cause, verified_goals_amount, elapsed_time = verify_file(absolute_path_to_c_file, solvers)
+
+    return verified, error_cause, verified_goals_amount, elapsed_time

@@ -43,11 +43,9 @@ def verify_file(absolute_c_path, solver):
     # Capture the command prompt output
     stdout, _ = result.communicate()
     stdout_str = stdout.decode("utf-8")
-
+    
     # Get the error cause and the strategy to solve the error
     verified, error_cause, verified_goals_amount = get_error_cause_and_strategy(stdout_str, absolute_c_path)
-
-    print(verified, stdout)
 
     return verified, error_cause, verified_goals_amount, elapsed_time
 
@@ -69,14 +67,14 @@ def get_error_cause_and_strategy(output: str, absolute_c_path: str):
     # Check if the output has a syntax error
     if "Syntax error" in output or "syntax error" in output or "invalid user input" in output:
         # Remove the lines with [kernel] in the output
-        output = re.sub(r'\[kernel\].*?\n', '', output)
+        output = re.sub(r'\[kernel\].*`?\n', '', output)
 
-        return False, [("There is a syntax error in the code. The following output was generated:\n"
-                        f"{output}")], "0 / 0"
+        return False, ("There is a syntax error in the code. The following output was generated:\n"
+                        f"{output}"), "0 / 0"
     # Check if the output has a fatal error
     elif "fatal error" in output:
-        return False, [("There is a fatal error in the code. The following output was generated:\n"
-                        f"{output}")], "0 / 0"
+        return False, ("There is a fatal error in the code. The following output was generated:\n"
+                        f"{output}"), "0 / 0"
     # Check if the output has a timeout
     elif "Timeout" in output:
         # Get the amount of verified goals by querying for " [wp] Proved goals:   19 / 22"
