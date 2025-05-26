@@ -60,7 +60,13 @@ docker run --rm -it \
  -e OPENAI_API_KEY \
  ghcr.io/sevenhuijsenm/specsmith:latest
 
-# 3. Inside the container, use:
+# 3. Set the API key
+
+llm keys set openAI
+
+Enter your API key
+
+# 4. Inside the container, use:
 
 python main.py --directory ./input
 
