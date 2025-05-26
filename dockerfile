@@ -24,10 +24,10 @@ RUN apt-get update && apt-get install -y \
     python3-pip
 
 # Set the working directory
-WORKDIR /SpACeCraft
+WORKDIR /SpecSmith
 
 # Copy the requirements file to avoid issues with automatic mounts
-COPY requirements.txt /SpACeCraft/requirements.txt
+COPY requirements.txt /SpecSmith/requirements.txt
 
 # Initialize OPAM (OCaml Package Manager) and install OCaml
 RUN opam init -y --disable-sandboxing && \
@@ -58,7 +58,7 @@ RUN opam init -y --disable-sandboxing && \
     ldconfig && \
     opam env >> /etc/bash.bashrc
 
-COPY . /SpACeCraft
+COPY . /SpecSmith
 VOLUME /run
 VOLUME /tmp
 CMD ["bash"]
