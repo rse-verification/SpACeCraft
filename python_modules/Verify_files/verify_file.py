@@ -30,7 +30,7 @@ def verify_file(absolute_c_path, solver):
     try:
         result.wait(600)
     except subprocess.TimeoutExpired:
-        print("Timeout expired. Killing the process.")
+        print("    Timeout expired. Killing the process.")
         result.kill()
         return False, "Timeout", "0 / 0", 600
 
@@ -41,10 +41,9 @@ def verify_file(absolute_c_path, solver):
     elapsed_time = end_time - start_time
 
     # Capture the command prompt output
-    stdout, stderr = result.communicate()
+    stdout, _ = result.communicate()
     stdout_str = stdout.decode("utf-8")
-    stderr_str = stderr.decode("utf-8")
-
+    
     # Get the error cause and the strategy to solve the error
     verified, error_cause, verified_goals_amount = get_error_cause_and_strategy(stdout_str, absolute_c_path)
 
@@ -68,14 +67,14 @@ def get_error_cause_and_strategy(output: str, absolute_c_path: str):
     # Check if the output has a syntax error
     if "Syntax error" in output or "syntax error" in output or "invalid user input" in output:
         # Remove the lines with [kernel] in the output
-        output = re.sub(r'\[kernel\].*?\n', '', output)
+        output = re.sub(r'\[kernel\].*`?\n', '', output)
 
-        return False, [("There is a syntax error in the code. The following output was generated:\n"
-                        f"{output}")], "0 / 0"
+        return False, ("There is a syntax error in the code. The following output was generated:\n"
+                        f"{output}"), "0 / 0"
     # Check if the output has a fatal error
     elif "fatal error" in output:
-        return False, [("There is a fatal error in the code. The following output was generated:\n"
-                        f"{output}")], "0 / 0"
+        return False, ("There is a fatal error in the code. The following output was generated:\n"
+                        f"{output}"), "0 / 0"
     # Check if the output has a timeout
     elif "Timeout" in output:
         # Get the amount of verified goals by querying for " [wp] Proved goals:   19 / 22"
@@ -149,7 +148,7 @@ def initialize_solvers() -> List[str]:
         
         return parse_solvers_from_file(solvers_path)
     except (subprocess.CalledProcessError, FileNotFoundError) as e:
-        print(f"Error executing Why3 command: {e}")
+        print(f"    Error executing Why3 command: {e}")
         return []
 
 
@@ -174,9 +173,9 @@ def parse_solvers_from_file(file_path: str) -> List[str]:
                 if match:
                     solver_names.append(match.group(1))
     except FileNotFoundError:
-        print(f"Error: Solvers configuration file not found at {file_path}.")
+        print(f"    Error: Solvers configuration file not found at {file_path}.")
     except Exception as e:
-        print(f"Error reading solvers file: {e}")
+        print(f"    Error reading solvers file: {e}")
     
     return solver_names
 

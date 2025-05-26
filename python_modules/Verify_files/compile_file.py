@@ -1,39 +1,17 @@
-""" This module contains a function to compile a C file using the gcc compiler"""
-import subprocess
-import os
+import subprocess, os
 
-def compile_c(absolute_path_to_c_file, absolute_path_temp_folder):
-    """Compile a C file using the gcc compiler
-    Args:
-        absolute_path_to_c_file: The path to the C file
-        path_to_output: The path to the output file
-    Returns:
-        True if the C file compiled successfully, False otherwise
-        The output of the compiler"""
+def compile_c(source_path, build_dir):
+    os.makedirs(build_dir, exist_ok=True)
+    base = os.path.splitext(os.path.basename(source_path))[0]
+    out = os.path.join(build_dir, base)
 
-    # Create the output directory if it does not exist
-    if not os.path.exists(absolute_path_temp_folder):
-        os.makedirs(absolute_path_temp_folder)
+    cmd = ["gcc", source_path, "-o", out, "-c"]
+    proc = subprocess.run(cmd, capture_output=True, text=True)
 
-    # Set the path to the executable file
-    file_name = absolute_path_to_c_file.split("/")[-1].split(".")[0]
-    path_to_executable = os.path.join(absolute_path_temp_folder, f"{file_name}")
+    # Optionally remove the file if you only care about success, not the artifact:
+    if os.path.exists(out):
+        os.remove(out)
 
-    # Run the gcc compiler on the C file
-    result = subprocess.Popen(["gcc", absolute_path_to_c_file, "-o", path_to_executable, "-c"],
-                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    success = (proc.returncode == 0)
 
-    # Capture the command prompt output
-    stdout, stderr = result.communicate()
-
-    # Remove the compiled file
-    if os.path.exists(path_to_executable):
-        os.remove(path_to_executable)
-
-    # Return the result and command prompt output
-    if result.returncode == 0 and not stdout.decode("utf-8") and not stderr.decode("utf-8"):
-        return True, stdout.decode("utf-8")
-    else:
-        return False, stderr.decode("utf-8")
-
-__all__ = ["compile_c"]
+    return success, proc.stdout + proc.stderr

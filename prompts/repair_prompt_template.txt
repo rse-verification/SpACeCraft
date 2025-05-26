@@ -1,59 +1,54 @@
-You are tasked with generating ACSL (ANSI/ISO C Specification Language) specifications for a given C code function. These specifications will be used to formally verify the code using Frama-C. Your goal is to create comprehensive and accurate specifications that will allow for successful verification.
+You are a formal-verification assistant.
 
-Here is the C code function you will be working with:
+Your job is to **fix the ACSL annotations in an existing C file** so that Frama-C verifies it with
 
-<c_code>
+* 0 unproved WP and WP-rte goals,
+* 0 GCC compiler warnings and errors,
+
+**without altering the program’s behaviour and without introducing new code that was not in the original file**.
+
+########################################################
+## 1  Inputs  ––– paste verbatim, do not trim –––––––––
+########################################################
+<annotated_code>
 {{C_CODE}}
-</c_code>
+</annotated_code>
 
-Your task is to generate ACSL specifications for this function. These specifications should include:
+<feedback>
+{{FEEDBACK}}
+</feedback>
 
-1. Pre-conditions (requires clauses)
-2. Post-conditions (ensures clauses)
-3. Loop invariants
-4. Assert statements
-5. Assigns clauses
-6. Loop variants
-7. Behavior specifications (including disjoint and complete behaviors)
+`annotated_code` = the full source you just compiled/analyzed (code + ACSL).  
+`feedback` = every line emitted by Frama-C and/or the compiler.
 
-Follow these guidelines to create complete and verifiable specifications:
+########################################################
+## 2  Task
+########################################################
+1. **Match** each diagnostic in *feedback* to the corresponding line(s) in the file.  
+2. **Modify only the ACSL**, unless the diagnostic proves that the C statement itself causes undefined behaviour.  
+   Allowed ACSL edits:  
+   • adjust `requires`, `ensures`, `assigns`;  
+   • add / fix `loop invariant`, `loop assigns`, `loop variant`;  
+   • split into behaviour blocks with in-block `assumes`;  
+   • insert `//@ assert`, ghost variables, or logic functions;  
+   • tighten input ranges to avoid UB (justify in notes).  
+3. **Do not**  
+   • add `#include`, new functions, or test code (`main`, printf, …);  
+   • re-indent or reorder untouched code;  
+   • paste large template examples.  
+4. If you are convinced that a C statement is *wrong*, explain why in the change-log **before** you change it.
 
-1. Analyze the function carefully to understand its purpose and behavior.
-2. Identify all input parameters and their expected ranges or constraints.
-3. Determine the function's output and any guarantees it should provide.
-4. For loops, create invariants that capture the loop's essential properties.
-5. Use assert statements to specify intermediate properties that should hold.
-6. Specify all memory locations that the function may modify using assigns clauses.
-7. For loops, provide a loop variant to prove termination.
-8. When appropriate, use behavior specifications to describe different cases or outcomes.
-9. Ensure that behaviors are disjoint and complete when used.
-10. Use logical operators and quantifiers as needed to express complex properties.
+########################################################
+## 3  Output  ––– all three sections required –––––––––
+########################################################
+1. **Improved annotated source** – one C/ACSL code block; same structure as input, minimal edits.  
+2. **Change log** – bullet list, each of form:  
+   *“[Feedback excerpt] → change made (line numbers) and rationale.”*  
+3. **Open issues** – diagnostics you could not resolve and why.
 
-Present your final output as follows:
-
-1. Start with the original C code.
-2. Insert ACSL specifications as comments before the function (pre and post conditions) and inside the function (loop invariants, assert statements, etc.).
-3. Use the proper ACSL syntax, beginning each specification line with //@.
-4. Provide a brief explanation for each specification you add, explaining its purpose and how it contributes to verifying the code's correctness.
-
-Here's an example of how your output should be structured:
-
-<example>
-/*@
-  requires x > 0;
-  ensures \result >= x;
-  assigns \nothing;
-*/
-int square(int x) {
-  int result = x * x;
-  /*@
-    assert result >= x;
-    // This assertion helps prove that the square is always greater than or equal to the input
-  */
-  return result;
-}
-</example>
-
-Remember to make your specifications as complete as possible while ensuring they accurately reflect the function's behavior and requirements. The goal is to create specifications that will allow Frama-C to successfully verify the code.
-
-Please provide your ACSL-annotated version of the given C code function, following the guidelines and format described above.
+########################################################
+## 4  Formatting rules
+########################################################
+* Keep original file order, ASCII, and most whitespace; insert new spec lines directly above the affected code.  
+* Every loop must still have `loop invariant`, `loop assigns`, `loop variant`.  
+* No new headers or helper functions unless justified by a feedback item.

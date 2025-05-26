@@ -2,13 +2,13 @@
 from python_modules.Verify_files.compile_file import compile_c
 from python_modules.Verify_files.verify_file import verify_file
 
-def check_file(absolute_path_to_c_file, temp_folder, normalized_solvers):
+def check_file(absolute_path_to_c_file, temp_folder, solvers):
     """Check a C file in a given directory
     
     Args:
         absolute_path_to_c_file: The absolute path to the C file
         temp_folder: The temporary folder to store the compiled file
-        normalized_solvers: The normalized solvers to use
+        solvers: the solvers that are used byu frama_C
     Returns:
         result: True if the file is compiled, False otherwise
         output: The output of the compilation
@@ -21,6 +21,7 @@ def check_file(absolute_path_to_c_file, temp_folder, normalized_solvers):
     # If the compilation failed, return False and the output
     if result is False:
         return False, output, None, 0
-
     # Verify the file and return it
-    return verify_file(absolute_path_to_c_file, normalized_solvers)
+    verified, error_cause, verified_goals_amount, elapsed_time = verify_file(absolute_path_to_c_file, solvers)
+
+    return verified, error_cause, verified_goals_amount, elapsed_time

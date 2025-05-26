@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 __pycache__/
 *.pyc
 old/*
@@ -17,44 +16,3 @@ work_in_progress/*
 extra_problems/*
 .venv
 input/*
-=======
-<<<<<<< HEAD
-__pycache__/
-*.pyc
-old/*
-tmp/*
-.env
-errors.txt
-prompt.txt
-python_modules/prompt.txt
-output_gpt.txt
-.vscode/
-.vscode/*
-output/*
-python_modules/graphs.ipynb
-Figures/*
-work_in_progress/*
-extra_problems/*
-.venv/
-venv/
-=======
-__pycache__/
-*.pyc
-old/*
-tmp/*
-.env
-errors.txt
-prompt.txt
-python_modules/prompt.txt
-output_gpt.txt
-.vscode/
-.vscode/*
-output/*
-python_modules/graphs.ipynb
-Figures/*
-work_in_progress/*
-extra_problems/*
-.venv
-input/*
->>>>>>> d6076ab2281e5dc7bb59331903a1a595537f86e0
->>>>>>> b47b978b0f1daec478ade90a929de89b582dc532
