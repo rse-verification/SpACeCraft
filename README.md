@@ -11,7 +11,7 @@ This repo maintains two ways of running the tool:
 - **`local`** – for running SpecSmith directly on your host, with Python, Frama-C, Why3, etc.
 - **`docker`** – for running SpecSmith entirely inside a Docker container (no local toolchain installs).
 
-## Local Workflow (local branch)
+## Local Workflow
 
 Prerequisites
 
@@ -41,7 +41,7 @@ echo "OPENAI*API_KEY=sk*..." > .env
 
 python main.py --directory ./input
 
-## 🐳 Docker Workflow (docker branch)
+## 🐳 Docker Workflow
 
 Prerequisites
 
