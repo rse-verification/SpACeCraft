@@ -55,8 +55,8 @@ docker pull ghcr.io/sevenhuijsenm/specsmith:latest
 # 2. Run interactively, mounting host folders:
 
 docker run --rm -it \
- --mount type=bind,source="$(pwd)/input",target=/app/input \
-  --mount type=bind,source="$(pwd)/output",target=/app/output \
+ --mount type=bind,source="$(pwd)/input",target=/SpecSmith/output \
+  --mount type=bind,source="$(pwd)/output",target=/SpecSmith/input \
  -e OPENAI_API_KEY \
  ghcr.io/sevenhuijsenm/specsmith:latest
 
